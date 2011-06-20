@@ -1,0 +1,67 @@
+/**
+ * The ALU.  Computes a pre-defined set of functions out = f(x,y)
+ * where x and y are two 16-bit inputs. The function f is selected
+ * by a set of 6 control bits denoted zx, nx, zy, ny, f, no.
+ * The ALU operation can be described using the following pseudocode:
+ *     if zx=1 set x = 0       // 16-bit zero constant
+ *     if nx=1 set x = !x      // Bit-wise negation
+ *     if zy=1 set y = 0       // 16-bit zero constant
+ *     if ny=1 set y = !y      // Bit-wise negation
+ *     if f=1  set out = x + y // Integer 2's complement addition
+ *     else    set out = x & y // Bit-wise And
+ *     if no=1 set out = !out  // Bit-wise negation
+ *
+ * In addition to computing out, the ALU computes two 1-bit outputs:
+ *     if out=0 set zr = 1 else zr = 0 // 16-bit equality comparison
+ *     if out<0 set ng = 1 else ng = 0 // 2's complement comparison
+ */
+
+CHIP ALU {
+    IN x[16], y[16],
+       zx, // Zero the x input
+       nx, // Negate the x input
+       zy, // Zero the y input
+       ny, // Negate the y input
+       f,  // Function code: 1 for add, 0 for and
+       no; // Negate the out output
+
+    OUT out[16],
+        // ALU output flags
+        zr, // 1 if out=0, 0 otherwise
+        ng; // 1 if out<0, 0 otherwise
+
+    PARTS:
+    // x
+
+    // if zx=1 set x = 0
+    Mux16(a=x, b[0..15]=false, sel=zx, out=xout1);
+    // if nx=1 set x = !x
+    Not16(in=xout1, out=notxout1);
+    Mux16(a=xout1, b=notxout1, sel=nx, out=xout2);
+
+    // y
+
+    // if zy=1 set y = 0
+    Mux16(a=y, b[0..15]=false, sel=zy, out=yout1);
+    // if ny=1 set y = !y
+    Not16(in=yout1, out=notyout1);
+    Mux16(a=yout1, b=notyout1, sel=ny, out=yout2);
+
+    // if f=1  set out = x + y
+    Add16(a=xout2, b=yout2, out=sumxy);
+    // else    set out = x & y
+    And16(a=xout2, b=yout2, out=andxy);
+
+    Mux16(a=andxy, b=sumxy, sel=f, out=xyout);
+
+    // if no=1 set out = !out
+    // if out<0 set ng = 1 else ng = 0
+    Not16(in=xyout, out=notxyout);
+    Mux16(a=xyout, b=notxyout, sel=no, out=out, out[0..7]=out1, out[8..15]=out2, out[15]=ng);
+
+    // if out=0 set zr = 1 else zr = 0
+    Or8Way(in=out1, out=notzero1);
+    Or8Way(in=out2, out=notzero2);
+    Or(a=notzero1, b=notzero2, out=notzero);
+    Not(in=notzero, out=zr);
+}
