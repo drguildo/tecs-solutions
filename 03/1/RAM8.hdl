@@ -1,24 +1,20 @@
-// This file is part of the materials accompanying the book 
-// "The Elements of Computing Systems" by Nisan and Schocken, 
-// MIT Press. Book site: www.idc.ac.il/tecs
-// File name: projects/03/1/RAM8.hdl
-
-/**
- * Memory of 8 registers, each 16-bit wide.  
- * The chip facilitates read and write operations, as follows:
- *     Read:  out(t) = RAM8[address(t)](t)
- *     Write: If load(t-1) then RAM8[address(t-1)](t) = in(t-1)
- * In words: the chip always outputs the value stored at the memory 
- * location specified by address. If load=1, the in value is loaded 
- * into the memory location specified by address.  This value becomes 
- * available through the out output starting from the next time step.
- */
-
 CHIP RAM8 {
-
-    IN  in[16], load, address[3];
+    IN in[16], load, address[3];
     OUT out[16];
 
     PARTS:
-    // Implementation missing.
+    DMux8Way(in=load, sel=address, a=r1, b=r2, c=r3, d=r4,
+                                   e=r5, f=r6, g=r7, h=r8);
+
+    Register(in=in, load=r1, out=o1);
+    Register(in=in, load=r2, out=o2);
+    Register(in=in, load=r3, out=o3);
+    Register(in=in, load=r4, out=o4);
+    Register(in=in, load=r5, out=o5);
+    Register(in=in, load=r6, out=o6);
+    Register(in=in, load=r7, out=o7);
+    Register(in=in, load=r8, out=o8);
+
+    Mux8Way16(a=o1, b=o2, c=o3, d=o4, e=o5, f=o6, g=o7, h=o8,
+              sel=address, out=out);
 }
