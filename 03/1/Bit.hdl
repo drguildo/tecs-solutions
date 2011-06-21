@@ -1,8 +1,3 @@
-// This file is part of the materials accompanying the book
-// "The Elements of Computing Systems" by Nisan and Schocken,
-// MIT Press. Book site: www.idc.ac.il/tecs
-// File name: projects/03/1/Bit.hdl
-
 /**
  * 1-bit memory register.
  * If load[t-1]=1 then out[t] = in[t-1]
@@ -10,10 +5,12 @@
  */
 
 CHIP Bit {
-
     IN  in, load;
     OUT out;
 
     PARTS:
-    // Implementation missing.
+    DFF(in=load, out=loadp);
+    DFF(in=in, out=inp);
+    DFF(in=out2, out=outp);
+    Mux(a=outp, b=inp, sel=loadp, out=out, out=out2);
 }
