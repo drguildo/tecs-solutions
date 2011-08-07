@@ -12,6 +12,8 @@ class Parser(filename: String) {
 }
 
 class CodeGenerator(code: List[Array[String]]) {
+  var labels = 0
+
   val stackBase = 256
 
   println("@" + stackBase)
@@ -22,22 +24,62 @@ class CodeGenerator(code: List[Array[String]]) {
   for (command <- code) {
     command(0) match {
       case "push" => push(command(1), command(2).toInt)
-      case "pop"  => println("got a pop")
-      case "add"  => add()
-      case _      => println("unimplemented") //throw new IllegalArgumentException("Invalid command.")
+      case "pop"  => pop(command(1), command(2).toInt)
+      case "add"  => binaryOperation("M+D")
+      case "sub"  => binaryOperation("M-D")
+      case "eq"   => comparison("JEQ")
+      case "lt"   => comparison("JLT")
+      case "gt"   => comparison("JGT")
+      case "neg"  => neg()
+      case "and"  => binaryOperation("D&M")
+      case "or"   => binaryOperation("D|M")
+      case _      => throw new IllegalArgumentException("Invalid command.")
     }
   }
 
   // Arithmetic and logical commands.
 
-  def add() {
+  def comparison(op: String) {
     decrementPointer("SP")
     dereferencePointer("SP")
     println("D=M")
 
     decrementPointer("SP")
     dereferencePointer("SP")
-    println("M=D+M") // XXX: D gets clobbered by the previous 2 operations.
+    println("D=M-D")
+
+    val trueLabel = generateLabel()
+    val falseLabel = generateLabel()
+    println("@" + trueLabel)
+    println("D;" + op)
+    println("D=0")
+    println("@" + falseLabel)
+    println("0;JMP")
+    println("(" + trueLabel + ")")
+    println("D=-1")
+    println("(" + falseLabel + ")")
+
+    dereferencePointer("SP")
+    println("M=D")
+
+    incrementPointer("SP")
+  }
+
+  def binaryOperation(op: String) {
+    decrementPointer("SP")
+    dereferencePointer("SP")
+    println("D=M")
+
+    decrementPointer("SP")
+    dereferencePointer("SP")
+    println("M=" + op)
+    incrementPointer("SP")
+  }
+
+  def neg() {
+    decrementPointer("SP")
+    dereferencePointer("SP")
+    println("M=-M")
     incrementPointer("SP")
   }
 
@@ -62,13 +104,10 @@ class CodeGenerator(code: List[Array[String]]) {
   }
 
   def pop(segment: String, index: Int) {
+    throw new UnsupportedOperationException()
   }
 
   // Helper functions.
-
-  def getAddress(segment: String, index: Int): Int = {
-    0
-  }
 
   def dereferencePointer(register: String) {
     // Store the value contained in a register in A.
@@ -86,7 +125,10 @@ class CodeGenerator(code: List[Array[String]]) {
     println("M=M+1")
   }
 
-  def copyStackTo(register: String) {
+  def generateLabel(): String = {
+    val l = "L" + labels
+    labels = labels + 1
+    l
   }
 }
 
