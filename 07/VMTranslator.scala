@@ -12,14 +12,45 @@ class Parser(filename: String) {
 }
 
 class CodeGenerator(code: List[Array[String]]) {
+  val segmentRegisters = Map("local" -> "LCL", "argument" -> "ARG",
+                              "this" -> "THIS", "that" -> "THAT")
+
   var labels = 0
 
+  /*
   val stackBase = 256
+
+  val argumentBase = 300
+  val localBase = 400
+
+  val thisBase = 3000
+  val thatBase = 3010
 
   println("@" + stackBase)
   println("D=A")
   println("@SP")
   println("M=D")
+
+  println("@" + localBase)
+  println("D=A")
+  println("@LCL")
+  println("M=D")
+
+  println("@" + argumentBase)
+  println("D=A")
+  println("@ARG")
+  println("M=D")
+
+  println("@" + thisBase)
+  println("D=A")
+  println("@THIS")
+  println("M=D")
+
+  println("@" + thatBase)
+  println("D=A")
+  println("@THAT")
+  println("M=D")
+  */
 
   for (command <- code) {
     command(0) match {
@@ -86,12 +117,23 @@ class CodeGenerator(code: List[Array[String]]) {
   // Memory access commands.
 
   def push(segment: String, index: Int) {
+    // Fetch value from segment.
     // XXX: Check segment index is valid.
     if (segment == "constant") {
       println("@" + index)
       println("D=A")
     } else {
-      ""
+      println("@" + index)
+      println("D=A")
+      if (segment == "pointer") {
+        println("@3")
+      } else if (segment == "temp") {
+        println("@5")
+      } else {
+        dereferencePointer(segmentRegisters(segment))
+      }
+      println("A=A+D")
+      println("D=M")
     }
 
     // Store value at the top of the stack.
@@ -104,7 +146,26 @@ class CodeGenerator(code: List[Array[String]]) {
   }
 
   def pop(segment: String, index: Int) {
-    throw new UnsupportedOperationException()
+    decrementPointer("SP")
+
+    println("@" + index)
+    println("D=A")
+    if (segment == "pointer") {
+      println("@3")
+    } else if (segment == "temp") {
+      println("@5")
+    } else {
+      dereferencePointer(segmentRegisters(segment))
+    }
+    println("D=A+D")
+    println("@R13")
+    println("M=D")
+
+    dereferencePointer("SP")
+    println("D=M")
+    println("@R13")
+    println("A=M")
+    println("M=D")
   }
 
   // Helper functions.
