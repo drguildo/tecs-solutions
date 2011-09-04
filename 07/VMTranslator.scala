@@ -1,17 +1,15 @@
 // Robustness is sacrificed for simplicity.
 
-class Parser(filename: String) {
+import java.io.File
+
+class Parser(file: File) {
   import scala.io.Source
-  var lines = Source.fromFile(filename).getLines
-                                       .toList
-                                       .map(s => s.takeWhile(c => c != '/'))
-                                       .filter(s => s != "")
-                                       .map(s => s.split(' '))
+  val code = Source.fromFile(file).getLines
+                                      .toList
+                                      .map(s => s.takeWhile(c => c != '/'))
+                                      .filter(s => s != "")
+                                      .map(s => s.split(' '))
 
-  val cg = new CodeGenerator(lines)
-}
-
-class CodeGenerator(code: List[Array[String]]) {
   val segmentRegisters = Map("local" -> "LCL", "argument" -> "ARG",
                               "this" -> "THIS", "that" -> "THAT")
 
@@ -122,15 +120,16 @@ class CodeGenerator(code: List[Array[String]]) {
     if (segment == "constant") {
       println("@" + index)
       println("D=A")
+    } else if (segment == "static") {
+      println("@" + file.getName.stripSuffix(".vm") + "." + index)
+      println("D=M")
     } else {
       println("@" + index)
       println("D=A")
-      if (segment == "pointer") {
-        println("@3")
-      } else if (segment == "temp") {
-        println("@5")
-      } else {
-        dereferencePointer(segmentRegisters(segment))
+      segment match {
+        case "pointer" => println("@3")
+        case "temp"    => println("@5")
+        case _         => dereferencePointer(segmentRegisters(segment))
       }
       println("A=A+D")
       println("D=M")
@@ -146,26 +145,32 @@ class CodeGenerator(code: List[Array[String]]) {
   }
 
   def pop(segment: String, index: Int) {
-    decrementPointer("SP")
-
-    println("@" + index)
-    println("D=A")
-    if (segment == "pointer") {
-      println("@3")
-    } else if (segment == "temp") {
-      println("@5")
+    if (segment == "static") {
+      decrementPointer("SP")
+      dereferencePointer("SP")
+      println("D=M")
+      println("@" + file.getName.stripSuffix(".vm") + "." + index)
+      println("M=D")
     } else {
-      dereferencePointer(segmentRegisters(segment))
-    }
-    println("D=A+D")
-    println("@R13")
-    println("M=D")
+      decrementPointer("SP") // XXX: Move this just before dereferencePointer.
 
-    dereferencePointer("SP")
-    println("D=M")
-    println("@R13")
-    println("A=M")
-    println("M=D")
+      println("@" + index)
+      println("D=A")
+      segment match {
+        case "pointer" => println("@3")
+        case "temp"    => println("@5")
+        case _         => dereferencePointer(segmentRegisters(segment))
+      }
+      println("D=A+D")
+      println("@R13")
+      println("M=D")
+
+      dereferencePointer("SP")
+      println("D=M")
+      println("@R13")
+      println("A=M")
+      println("M=D")
+    }
   }
 
   // Helper functions.
@@ -193,10 +198,10 @@ class CodeGenerator(code: List[Array[String]]) {
   }
 }
 
-import java.io.File
 val f = new File(args(0))
 
 if (f.isDirectory) {
+  // TODO: Parse a directory of files.
 } else {
-  new Parser(args(0))
+  new Parser(f)
 }
