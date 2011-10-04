@@ -9,7 +9,7 @@ class Parser(file: File) {
                              "argument" -> "ARG",
                              "this" -> "THIS",
                              "that" -> "THAT")
-  var labels: Set[String] = Set()
+  var numLabels = 0
   var currentFunction: Option[String] = None
 
   /*
@@ -225,8 +225,7 @@ class Parser(file: File) {
   }
 
   def generateLabel(): String = {
-    val l = "L" + labels.size
-    labels = labels + l
+    val l = "L" + numLabels
     l
   }
 
