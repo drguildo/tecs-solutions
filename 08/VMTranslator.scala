@@ -202,7 +202,7 @@ class Parser(file: File) {
     val returnLabel = generateLabel()
     for (symbol <- List(returnLabel, "LCL", "ARG", "THIS", "THAT")) {
       println("@" + symbol)
-      println("D=A")
+      println("D=M")
       dereferencePointer("SP")
       println("M=D")
       incrementPointer("SP")
@@ -310,7 +310,8 @@ class Parser(file: File) {
 // Bootstrap
 
 // Locate the stack at RAM[256]
-println("@256")
+//println("@256")
+println("@261")
 println("D=A")
 println("@SP")
 println("M=D")
