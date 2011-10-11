@@ -14,41 +14,6 @@ class Parser(file: File) {
   var numLabels = 0
   var currentFunction: Option[String] = None
 
-  /*
-  val stackBase = 256
-
-  val argumentBase = 300
-  val localBase = 400
-
-  val thisBase = 3000
-  val thatBase = 3010
-
-  println("@" + stackBase)
-  println("D=A")
-  println("@SP")
-  println("M=D")
-
-  println("@" + localBase)
-  println("D=A")
-  println("@LCL")
-  println("M=D")
-
-  println("@" + argumentBase)
-  println("D=A")
-  println("@ARG")
-  println("M=D")
-
-  println("@" + thisBase)
-  println("D=A")
-  println("@THIS")
-  println("M=D")
-
-  println("@" + thatBase)
-  println("D=A")
-  println("@THAT")
-  println("M=D")
-  */
-
   import scala.io.Source
   var code = Source.fromFile(file).getLines.toList
 
@@ -207,12 +172,6 @@ class Parser(file: File) {
     incrementPointer("SP")
   }
 
-  // Program Flow
-
-  def label() {}
-  def goto() {}
-  def ifGoto() {}
-
   // Function calling
 
   /* (f)
@@ -348,10 +307,21 @@ class Parser(file: File) {
   }
 }
 
+// Bootstrap
+
+// Locate the stack at RAM[256]
+println("@256")
+println("D=A")
+println("@SP")
+println("M=D")
+
+println("@Sys.init")
+println("0;JMP")
+
 val f = new File(args(0))
 
 if (f.isDirectory) {
   // TODO: Parse a directory of files.
 } else {
-  new Parser(f)
+  args.foreach(arg => new Parser(new File(arg)))
 }
