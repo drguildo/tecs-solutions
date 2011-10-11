@@ -1,67 +1,72 @@
 // Robustness is sacrificed for simplicity.
 
-import scala.collection.mutable.HashMap
-
 import java.io.File
 
-class Parser(file: File) {
-  val filename = file.getName.stripSuffix(".vm")
+object Parser {
+  import scala.collection.mutable.HashMap
+  import scala.io.Source
 
   val segmentRegisters = Map("local"    -> "LCL",
                              "argument" -> "ARG",
                              "this"     -> "THIS",
                              "that"     -> "THAT")
-  var numLabels = 0
+
   var currentFunction: Option[String] = None
+  var filename = ""
+  var numLabels = 0
 
-  import scala.io.Source
-  var code = Source.fromFile(file).getLines.toList
+  def parse(file: File) {
+    currentFunction = None
+    filename = file.getName.stripSuffix(".vm")
 
-  for (line <- code) {
-    val command = line.split(' ')
-                      .map(_.trim)
-                      .filter(_ != "")
-                      .takeWhile(!_.contains('/')) // Remove comments.
+    var code = Source.fromFile(file).getLines.toList
 
-    if (command.length > 0) {
-      println("// " + command.mkString(" "))
+    for (line <- code) {
+      val command = line.split(' ')
+                        .map(_.trim)
+                        .filter(_ != "")
+                        .takeWhile(!_.contains('/')) // Remove comments.
 
-      command(0) match {
-        // push segment index
-        case "push" => push(command(1), command(2).toInt)
-        // pop segment index
-        case "pop"  => pop(command(1), command(2).toInt)
+      if (command.length > 0) {
+        println("// " + command.mkString(" "))
 
-        case "add"  => binaryOperation("M+D")
-        case "sub"  => binaryOperation("M-D")
+        command(0) match {
+          // push segment index
+          case "push" => push(command(1), command(2).toInt)
+          // pop segment index
+          case "pop"  => pop(command(1), command(2).toInt)
 
-        case "neg"  => unaryOperation("-M")
-        case "eq"   => comparison("JEQ")
-        case "gt"   => comparison("JGT")
-        case "lt"   => comparison("JLT")
-        case "and"  => binaryOperation("D&M")
-        case "or"   => binaryOperation("D|M")
-        case "not"  => unaryOperation("!M")
+          case "add"  => binaryOperation("M+D")
+          case "sub"  => binaryOperation("M-D")
 
-        // labal name
-        case "label"   => println("(" + expandLabel(command(1)) + ")")
-        // goto name
-        case "goto"    => println("@" + expandLabel(command(1)))
-                          println("0;JMP")
-        // if-goto name
-        case "if-goto" => decrementPointer("SP")
-                          dereferencePointer("SP")
-                          println("D=M")
-                          println("@" + expandLabel(command(1)))
-                          println("D;JNE")
+          case "neg"  => unaryOperation("-M")
+          case "eq"   => comparison("JEQ")
+          case "gt"   => comparison("JGT")
+          case "lt"   => comparison("JLT")
+          case "and"  => binaryOperation("D&M")
+          case "or"   => binaryOperation("D|M")
+          case "not"  => unaryOperation("!M")
 
-        // function name nlocals
-        case "function" => function(command(1), command(2).toInt)
-        // call name nargs
-        case "call"     => call(command(1), command(2).toInt)
-        case "return"   => return_()
+          // labal name
+          case "label"   => println("(" + expandLabel(command(1)) + ")")
+          // goto name
+          case "goto"    => println("@" + expandLabel(command(1)))
+          println("0;JMP")
+          // if-goto name
+          case "if-goto" => decrementPointer("SP")
+          dereferencePointer("SP")
+          println("D=M")
+          println("@" + expandLabel(command(1)))
+          println("D;JNE")
 
-        case _ => throw new Exception("Invalid or unsupported command.")
+          // function name nlocals
+          case "function" => function(command(1), command(2).toInt)
+          // call name nargs
+          case "call"     => call(command(1), command(2).toInt)
+          case "return"   => return_()
+
+          case _ => throw new Exception("Invalid or unsupported command.")
+        }
       }
     }
   }
@@ -200,7 +205,13 @@ class Parser(file: File) {
 
   def call(name: String, args: Int) {
     val returnLabel = generateLabel()
-    for (symbol <- List(returnLabel, "LCL", "ARG", "THIS", "THAT")) {
+    println("@" + returnLabel)
+    println("D=A")
+    dereferencePointer("SP")
+    println("M=D")
+    incrementPointer("SP")
+
+    for (symbol <- List("LCL", "ARG", "THIS", "THAT")) {
       println("@" + symbol)
       println("D=M")
       dereferencePointer("SP")
@@ -244,7 +255,7 @@ class Parser(file: File) {
     println("M=D")
 
     /* We reorder this thusly because it results in less code:
-     * 
+     *
      * FRAME = LCL
      * *ARG = pop()
      * SP = ARG+1
@@ -273,6 +284,9 @@ class Parser(file: File) {
       println("@" + symbol)
       println("M=D")
     }
+
+    dereferencePointer("RET")
+    println("0;JMP")
   }
 
   // Helper functions.
@@ -324,5 +338,8 @@ val f = new File(args(0))
 if (f.isDirectory) {
   // TODO: Parse a directory of files.
 } else {
-  args.foreach(arg => new Parser(new File(arg)))
+  for (filename <- args) {
+    val file = new File(filename)
+    Parser.parse(file)
+  }
 }
