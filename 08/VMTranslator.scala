@@ -325,7 +325,7 @@ object Parser {
 
 // Locate the stack at RAM[256]
 //println("@256")
-println("@261")
+println("@256")
 println("D=A")
 println("@SP")
 println("M=D")
