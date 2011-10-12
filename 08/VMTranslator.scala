@@ -344,15 +344,12 @@ object Parser {
 // Bootstrap
 
 // Locate the stack at RAM[256]
-// Sometimes this has to be 261 because the people who wrote the test scripts
-// fucked up. Great job!
 println("@256")
 println("D=A")
 println("@SP")
 println("M=D")
 
-println("@Sys.init")
-println("0;JMP")
+Parser.call("Sys.init", 0)
 
 val f = new File(args(0))
 

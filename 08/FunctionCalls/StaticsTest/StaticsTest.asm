@@ -1,9 +1,57 @@
-@261
+@256
 D=A
 @SP
 M=D
+@L0
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@LCL
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@ARG
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@THIS
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@THAT
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@5
+D=A
+@SP
+A=M
+D=A-D
+@ARG
+M=D
+@SP
+A=M
+D=A
+@LCL
+M=D
 @Sys.init
 0;JMP
+(L0)
 // function Class1.set 0
 (Class1.set)
 // push argument 0
@@ -433,7 +481,7 @@ M=D
 @SP
 M=M+1
 // call Class1.set 2
-@L0
+@L1
 D=A
 @SP
 A=M
@@ -482,7 +530,7 @@ D=A
 M=D
 @Class1.set
 0;JMP
-(L0)
+(L1)
 // pop temp 0
 @SP
 M=M-1
@@ -515,7 +563,7 @@ M=D
 @SP
 M=M+1
 // call Class2.set 2
-@L1
+@L2
 D=A
 @SP
 A=M
@@ -564,7 +612,7 @@ D=A
 M=D
 @Class2.set
 0;JMP
-(L1)
+(L2)
 // pop temp 0
 @SP
 M=M-1
@@ -581,7 +629,7 @@ D=M
 A=M
 M=D
 // call Class1.get 0
-@L2
+@L3
 D=A
 @SP
 A=M
@@ -630,9 +678,9 @@ D=A
 M=D
 @Class1.get
 0;JMP
-(L2)
+(L3)
 // call Class2.get 0
-@L3
+@L4
 D=A
 @SP
 A=M
@@ -681,7 +729,7 @@ D=A
 M=D
 @Class2.get
 0;JMP
-(L3)
+(L4)
 // label WHILE
 (Sys.init$WHILE)
 // goto WHILE
