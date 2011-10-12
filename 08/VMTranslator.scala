@@ -344,6 +344,8 @@ object Parser {
 // Bootstrap
 
 // Locate the stack at RAM[256]
+// Sometimes this has to be 261 because the people who wrote the test scripts
+// fucked up. Great job!
 println("@256")
 println("D=A")
 println("@SP")
