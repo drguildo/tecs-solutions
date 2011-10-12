@@ -254,17 +254,13 @@ object Parser {
     println("@FRAME")
     println("M=D")
 
-    /* We reorder this thusly because it results in less code:
-     *
-     * FRAME = LCL
-     * *ARG = pop()
-     * SP = ARG+1
-     * THAT = *(FRAME-1)
-     * THIS = *(FRAME-2)
-     * ARG = *(FRAME-3)
-     * LCL = *(FRAME-4)
-     * RET = *(FRAME-5)
-     * goto RET */
+    println("@5")
+    println("D=A")
+    dereferencePointer("FRAME")
+    println("A=A-D")
+    println("D=M")
+    println("@RET")
+    println("M=D")
 
     decrementPointer("SP")
     dereferencePointer("SP")
@@ -277,13 +273,37 @@ object Parser {
     println("@SP")
     println("M=D")
 
-    for (symbol <- List("THAT", "THIS", "ARG", "LCL", "RET")) {
-      decrementPointer("FRAME")
-      dereferencePointer("FRAME")
-      println("D=M")
-      println("@" + symbol)
-      println("M=D")
-    }
+    println("@1")
+    println("D=A")
+    dereferencePointer("FRAME")
+    println("A=A-D")
+    println("D=M")
+    println("@THAT")
+    println("M=D")
+
+    println("@2")
+    println("D=A")
+    dereferencePointer("FRAME")
+    println("A=A-D")
+    println("D=M")
+    println("@THIS")
+    println("M=D")
+
+    println("@3")
+    println("D=A")
+    dereferencePointer("FRAME")
+    println("A=A-D")
+    println("D=M")
+    println("@ARG")
+    println("M=D")
+
+    println("@4")
+    println("D=A")
+    dereferencePointer("FRAME")
+    println("A=A-D")
+    println("D=M")
+    println("@LCL")
+    println("M=D")
 
     dereferencePointer("RET")
     println("0;JMP")
