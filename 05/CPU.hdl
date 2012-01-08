@@ -18,7 +18,9 @@ CHIP CPU {
         zy=instruction[9], ny=instruction[8],
         f=instruction[7], no=instruction[6],
         out=aluout, zr=iszero, ng=isneg, out=outM);
-    Not(in=isneg, out=ispos);
+    Not(in=isneg, out=notneg);
+    Not(in=iszero, out=notzero);
+    And(a=notneg, b=notzero, out=ispos);
 
     Not(in=instruction[15], out=ainstr);
     Or(a=ainstr, b=instruction[5], out=loada);
