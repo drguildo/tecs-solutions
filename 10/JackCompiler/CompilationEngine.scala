@@ -1,6 +1,6 @@
 package com.drguildo.tecs.jack
 
-object CompilationEngine {
+class CompilationEngine(tokens: JackTokenizer) {
   def compileClass() {}
   def compileClassVarDec() {}
   def compileSubroutine() {}

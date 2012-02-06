@@ -41,45 +41,55 @@ class JackTokenizer(inputFile: File) extends Iterable[(String, TokenType)] {
       i = i + 1
     }
 
-    if (i < input.length && symbols.contains(input(i))) {
-      println("Symbol: " + input(i))
-      tokens.append((input(i).toString, SYMBOL))
-      i = i + 1
-    } else if (i < input.length && input(i) == '"') {
-      var sc = ""
-      i = i + 1
-      while (i < input.length && input(i) != '"') {
-        sc = sc + input(i)
+    if (i < input.length) {
+      if (symbols.contains(input(i))) {
+        println("Symbol: " + input(i))
+        tokens.append((input(i).toString, SYMBOL))
         i = i + 1
-      }
-      i = i + 1
-      println("String: " + sc)
-      tokens.append((sc, STRING_CONST))
-    } else if (i < input.length && input(i).isDigit) {
-      var ic = ""
-      while (i < input.length && input(i) != ' ' && input(i).isDigit) {
-        ic = ic + input(i)
+      } else if (input(i) == '"') {
+        var sc = ""
         i = i + 1
-      }
-      println("Integer: " + ic)
-      tokens.append((ic, INT_CONST))
-    } else if (i < input.length) {
-      var t = ""
-      while (i < input.length && input(i) != ' ' && !symbols.contains(input(i))) {
-        t = t + input(i)
+        while (i < input.length && input(i) != '"') {
+          sc = sc + input(i)
+          i = i + 1
+        }
         i = i + 1
-      }
-      if (keywords.contains(t)) {
-        println("Keyword: " + t)
-        tokens.append((t, KEYWORD))
+        println("String: " + sc)
+        tokens.append((sc, STRING_CONST))
+      } else if (input(i).isDigit) {
+        var ic = ""
+        while (i < input.length && input(i) != ' ' && input(i).isDigit) {
+          ic = ic + input(i)
+          i = i + 1
+        }
+        println("Integer: " + ic)
+        tokens.append((ic, INT_CONST))
       } else {
-        println("Identifier: " + t)
-        tokens.append((t, IDENTIFIER))
+        var t = ""
+        while (i < input.length && input(i) != ' ' && !symbols.contains(input(i))) {
+          t = t + input(i)
+          i = i + 1
+        }
+        if (keywords.contains(t)) {
+          println("Keyword: " + t)
+          tokens.append((t, KEYWORD))
+        } else {
+          println("Identifier: " + t)
+          tokens.append((t, IDENTIFIER))
+        }
       }
     }
   }
 
   i = 0
+
+  def hasMoreTokens = i < tokens.length
+
+  def nextToken(): (String, TokenType) = {
+    val token = tokens(i)
+    i = i + 1
+    token
+  }
 
   def iterator = tokens.iterator
 }

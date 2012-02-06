@@ -21,11 +21,11 @@ object JackAnalyzer {
       val arg = new File(args(0))
 
       if (arg.isFile) {
-        analyzeFile(arg)
+        parseFile(arg)
       } else if (arg.isDirectory) {
         for (f <- arg.listFiles) {
           if (f.getName.takeRight(5) == ".jack") {
-            analyzeFile(f)
+            parseFile(f)
           }
         }
       } else {
@@ -36,7 +36,7 @@ object JackAnalyzer {
     }
   }
 
-  def analyzeFile(f: File) {
+  def parseFile(f: File) {
     import TokenType._
 
     val outPath = f.getPath.stripSuffix(".jack") + "T.xml"
@@ -46,7 +46,8 @@ object JackAnalyzer {
 
     var s = ""
     val tokens = new JackTokenizer(f)
-    for (t <- tokens) {
+    while (tokens.hasMoreTokens) {
+      val t = tokens.nextToken
       s = t._2 match {
         case KEYWORD      => "<keyword> " + t._1 + " </keyword>"
         case SYMBOL       => {
@@ -66,9 +67,12 @@ object JackAnalyzer {
 
     out.write("</tokens>\n")
     out.close
+
+    val syntax = new CompilationEngine(tokens)
   }
 
   def usage() {
     println("usage: JackAnalyzer [file|directory]")
   }
 }
+
