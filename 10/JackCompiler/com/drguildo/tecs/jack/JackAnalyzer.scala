@@ -4,17 +4,19 @@ import java.io.File
 import java.io.FileWriter
 import java.io.BufferedWriter
 
+import TokenType._
+
 /**
-  * The analyzer program operates on a given source, where source is either a
-  * file name of the form Xxx.jack or a directory name containing one or more
-  * such files. For each source Xxx.jack file, the analyzer goes through the
-  * following logic:
-  *
-  * 1. Create a JackTokenizer from the Xxx.jack input file;
-  * 2. Create an output file called Xxx.xml and prepare it for writing;
-  * 3. Use the CompilationEngine to compile the input JackTokenizer into the
-  *    output file.
-  */
+ * The analyzer program operates on a given source, where source is either a
+ * file name of the form Xxx.jack or a directory name containing one or more
+ * such files. For each source Xxx.jack file, the analyzer goes through the
+ * following logic:
+ *
+ * 1. Create a JackTokenizer from the Xxx.jack input file;
+ * 2. Create an output file called Xxx.xml and prepare it for writing;
+ * 3. Use the CompilationEngine to compile the input JackTokenizer into the
+ * output file.
+ */
 object JackAnalyzer {
   def main(args: Array[String]) {
     if (args.length > 0) {
@@ -37,17 +39,16 @@ object JackAnalyzer {
   }
 
   def parseFile(f: File) {
-    import TokenType._
-
+    /*
     val outPath = f.getPath.stripSuffix(".jack") + "T.xml"
     val out = new BufferedWriter(new FileWriter(outPath))
 
     out.write("<tokens>\n")
 
     var s = ""
-    val tokens = new JackTokenizer(f)
-    while (tokens.hasMoreTokens) {
-      val t = tokens.nextToken
+    val analyzer = new JackTokenizer(f)
+    while (analyzer.hasMoreTokens) {
+      val t = analyzer.nextToken
       s = t._2 match {
         case KEYWORD      => "<keyword> " + t._1 + " </keyword>"
         case SYMBOL       => {
@@ -68,11 +69,14 @@ object JackAnalyzer {
     out.write("</tokens>\n")
     out.close
 
-    val syntax = new CompilationEngine(tokens)
+    analyzer.rewind
+    */
+
+    val analyzer = new JackTokenizer(f, true)
+    new CompilationEngine(analyzer)
   }
 
   def usage() {
     println("usage: JackAnalyzer [file|directory]")
   }
 }
-

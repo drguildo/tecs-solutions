@@ -1,6 +1,6 @@
-// Robustness is sacrificed for simplicity.
-
 package com.drguildo.tecs.jack
+
+// Robustness is sacrificed for simplicity.
 
 import java.io.File
 
@@ -8,32 +8,29 @@ import scala.collection.mutable.ListBuffer
 import scala.io.Source
 import scala.util.matching.Regex
 
-object TokenType extends Enumeration {
-  type TokenType = Value
-  val KEYWORD, SYMBOL, IDENTIFIER, INT_CONST, STRING_CONST = Value
-}
 import TokenType._
 
 /**
-  * Removes all comments and white space from the input stream and breaks it
-  * into Jack-language tokens, as specified by the Jack grammar.
-  */
-class JackTokenizer(inputFile: File) extends Iterable[(String, TokenType)] {
+ * Removes all comments and white space from the input stream and breaks it
+ * into Jack-language tokens, as specified by the Jack grammar.
+ */
+class JackTokenizer(inputFile: File, debug: Boolean) {
   val keywords = Array("class", "constructor", "function", "method", "field",
-                       "static", "var", "int", "char", "boolean", "void",
-                       "true", "false", "null", "this", "let", "do", "if",
-                       "else", "while", "return")
+    "static", "var", "int", "char", "boolean", "void",
+    "true", "false", "null", "this", "let", "do", "if",
+    "else", "while", "return")
   val symbols = Array('{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-',
-                      '*', '/', '&', '|', '<', '>', '=', '~')
+    '*', '/', '&', '|', '<', '>', '=', '~')
 
   var input = Source.fromFile(inputFile).mkString
   input = new Regex("""//.*""").replaceAllIn(input, "") // Remove single-line comments.
   input = new Regex("""/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/""").replaceAllIn(input, "") // Remove multi-line comments.
   input = new Regex("""\r""").replaceAllIn(input, "") // Remove carriage returns.
   input = new Regex("""\n""").replaceAllIn(input, " ") // Remove newline characters.
-  input = new Regex("""\t""").replaceAllIn(input, " ") // Remove tabs.
+  input = new Regex("""\t""").replaceAllIn(input, " ")
+  // Remove tabs.
 
-  val tokens = ListBuffer[(String, TokenType)]()
+  val tokens = ListBuffer[Token]()
 
   var i = 0
   while (i < input.length) {
@@ -43,7 +40,8 @@ class JackTokenizer(inputFile: File) extends Iterable[(String, TokenType)] {
 
     if (i < input.length) {
       if (symbols.contains(input(i))) {
-        println("Symbol: " + input(i))
+        if (debug)
+          println("Symbol: " + input(i))
         tokens.append((input(i).toString, SYMBOL))
         i = i + 1
       } else if (input(i) == '"') {
@@ -54,7 +52,8 @@ class JackTokenizer(inputFile: File) extends Iterable[(String, TokenType)] {
           i = i + 1
         }
         i = i + 1
-        println("String: " + sc)
+        if (debug)
+          println("String: " + sc)
         tokens.append((sc, STRING_CONST))
       } else if (input(i).isDigit) {
         var ic = ""
@@ -62,7 +61,8 @@ class JackTokenizer(inputFile: File) extends Iterable[(String, TokenType)] {
           ic = ic + input(i)
           i = i + 1
         }
-        println("Integer: " + ic)
+        if (debug)
+          println("Integer: " + ic)
         tokens.append((ic, INT_CONST))
       } else {
         var t = ""
@@ -71,25 +71,48 @@ class JackTokenizer(inputFile: File) extends Iterable[(String, TokenType)] {
           i = i + 1
         }
         if (keywords.contains(t)) {
-          println("Keyword: " + t)
+          if (debug)
+            println("Keyword: " + t)
           tokens.append((t, KEYWORD))
         } else {
-          println("Identifier: " + t)
+          if (debug)
+            println("Identifier: " + t)
           tokens.append((t, IDENTIFIER))
         }
       }
     }
   }
 
-  i = 0
+  reset()
 
   def hasMoreTokens = i < tokens.length
 
-  def nextToken(): (String, TokenType) = {
-    val token = tokens(i)
-    i = i + 1
-    token
+  def nextToken(): Token = {
+    if (i < tokens.length) {
+      if (debug)
+        println(i + ": " + tokens(i))
+      val token = tokens(i)
+      i = i + 1
+      token
+    } else {
+      throw new Exception("No more tokens available.")
+    }
   }
 
-  def iterator = tokens.iterator
+  def reset() {
+    rewind(i)
+  }
+
+  def rewind() {
+    rewind(1)
+  }
+
+  def rewind(n: Int) {
+    if ((i - n) >= 0) {
+      i = i - n
+      println("Rewinding by " + n + "...")
+    } else {
+      throw new Exception("Attempt to rewind past beginning of token list.")
+    }
+  }
 }
