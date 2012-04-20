@@ -436,6 +436,10 @@ class CompilationEngine(tokenizer: JackTokenizer) {
 
       checkNextToken((")", SYMBOL))
       output.append("<symbol> ) </symbol>")
+
+      output.append("</term>")
+
+      return
     }
 
     if (nt._2 == IDENTIFIER) {
@@ -451,6 +455,8 @@ class CompilationEngine(tokenizer: JackTokenizer) {
 
         checkNextToken(("]", SYMBOL))
         output.append("<symbol> ] </symbol>")
+
+        output.append("</term>")
 
         return
       }
@@ -471,6 +477,8 @@ class CompilationEngine(tokenizer: JackTokenizer) {
         checkNextToken((")", SYMBOL))
         output.append("<symbol> ) </symbol>")
       }
+
+      output.append("</term>")
 
       return
     }
