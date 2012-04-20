@@ -38,42 +38,16 @@ object JackAnalyzer {
     }
   }
 
-  def parseFile(f: File) {
-    /*
-    val outPath = f.getPath.stripSuffix(".jack") + "T.xml"
-    val out = new BufferedWriter(new FileWriter(outPath))
+  def parseFile(inputFile: File) {
+    val analyzer = new JackTokenizer(inputFile, true)
+    val compilationEngine = new CompilationEngine(analyzer)
 
-    out.write("<tokens>\n")
+    val fileWriter = new FileWriter(inputFile.getName.dropRight(5) + ".xml")
 
-    var s = ""
-    val analyzer = new JackTokenizer(f)
-    while (analyzer.hasMoreTokens) {
-      val t = analyzer.nextToken
-      s = t._2 match {
-        case KEYWORD      => "<keyword> " + t._1 + " </keyword>"
-        case SYMBOL       => {
-          t._1 match {
-            case "<" => "<symbol> &lt; </symbol>"
-            case ">" => "<symbol> &gt; </symbol>"
-            case _   =>  "<symbol> " + t._1 + " </symbol>"
-          }
-        }
-        case IDENTIFIER   => "<identifier> " + t._1 + " </identifier>"
-        case INT_CONST    => "<integerConstant> " + t._1 + " </integerConstant>"
-        case STRING_CONST => "<stringConstant> " + t._1 + " </stringConstant>"
-      }
-      s = s + "\n"
-      out.write(s)
-    }
+    for (line <- compilationEngine.output)
+      fileWriter.write(line + "\n")
 
-    out.write("</tokens>\n")
-    out.close
-
-    analyzer.rewind
-    */
-
-    val analyzer = new JackTokenizer(f, true)
-    new CompilationEngine(analyzer)
+    fileWriter.close()
   }
 
   def usage() {
